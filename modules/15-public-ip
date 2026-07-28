@@ -4,10 +4,9 @@ set -euo pipefail
 # shellcheck source=../framework.sh
 source "${BASE_DIR}/framework.sh"
 
-ip_v4=$(dig +short txt ch whoami.cloudflare @1.0.0.1 | tr -d '"')
-country=$(whois "${ip_v4}" | grep -i -m 1 country | cut -d ':' -f 2 | xargs)
-ipv4_country="${ip_v4} (${country})"
+ip_v4=$(curl -s -4 https://api.ipify.org)
+country=$(whois "${ip_v4}" | grep -im 1 '^country' | cut -d ':' -f 2 | xargs)
+ipv4_country="${ip_v4} (${country:-unknown})"
 
 text=$(print_wrap "${WIDTH}" "${ipv4_country}")
-
 print_columns "Public IP" "${text}"
