@@ -1,24 +1,14 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
-# shellcheck source=../framework.sh
 source "${BASE_DIR}/framework.sh"
 
-#ips_v4=$(ip a | awk '/inet / && /global/ {split($2, arr, /\//); print arr[1]}')
-#IFS=$'\n' read -r -d '' -a ips <<< "${ips_v4}"
-
-#text=$(print_wrap "${WIDTH}" "${ips[@]}")
-
-#print_columns "IP addresses" "${text}"
-
-ips_v4=$(ip a | awk '/inet / && /global/ {split($2, arr, /\//); print arr[1]}')
+ips_v4=$(ip -o addr show scope global 2>/dev/null \
+    | awk '$2 !~ /^(docker|br-|veth|virbr|tun|tap)/ { split($4, arr, "/"); print arr[1] }')
 
 ips=()
-
 while IFS= read -r line; do
-    ips+=("$line")
+    [[ -n "$line" ]] && ips+=("$line")
 done <<< "$ips_v4"
 
 text=$(print_wrap "${WIDTH}" "${ips[@]}")
-
 print_columns "Internal IP(s)" "${text}"
