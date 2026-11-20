@@ -4,9 +4,9 @@ set -euo pipefail
 # shellcheck source=../framework.sh
 source "${BASE_DIR}/framework.sh"
 
-ip_v4=$(curl -s -4 https://api.ipify.org)
-country=$(whois "${ip_v4}" | grep -im 1 '^country' | cut -d ':' -f 2 | xargs)
-ipv4_country="${ip_v4} (${country:-unknown})"
+ip_v4=$(curl -s -4 --max-time 2 https://api.ipify.org || true)
+country=$(timeout 2 whois "${ip_v4}" 2>/dev/null | grep -im 1 '^country' | cut -d ':' -f 2 | xargs || true)
+ipv4_country="${ip_v4:-unknown} (${country:-unknown})"
 
 text=$(print_wrap "${WIDTH}" "${ipv4_country}")
 print_columns "Public IP" "${text}"
